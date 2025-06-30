@@ -5,7 +5,8 @@ export default {
   theme: {
     extend: {
       fontSize: {
-        xxs: "10px",
+        10: "10px",
+        15: "15px",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -57,4 +58,5 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate")],
+  important: true,
 };

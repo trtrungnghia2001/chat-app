@@ -1,3 +1,4 @@
+import { populate } from "dotenv";
 import { StatusCodes } from "http-status-codes";
 
 export const handleError = (err, req, res, next) => {
@@ -53,9 +54,14 @@ export const resultAndPagination = async (
   const limit = parseInt(req.query._limit) || 20;
   const skip = (page - 1) * limit;
 
-  const data = await model.find(filter).limit(limit).skip(skip).sort({
-    createAt: -1,
-  });
+  const data = await model
+    .find(filter)
+    .populate(options.populate || [])
+    .limit(limit)
+    .skip(skip)
+    .sort({
+      createAt: -1,
+    });
 
   const total = await model.countDocuments(filter);
   const totalPages = Math.ceil(total / limit);

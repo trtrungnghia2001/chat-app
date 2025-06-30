@@ -40,7 +40,7 @@ const roomSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    isRoom: {
+    isGroup: {
       type: Boolean,
       default: false,
     },

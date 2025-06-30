@@ -28,5 +28,5 @@ export interface IMessageSend {
     content: string;
     media: string;
   };
-  type: "room" | "user";
+  type: string;
 }

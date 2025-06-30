@@ -9,6 +9,8 @@ import { useEffect } from "react";
 import UpdateMeForm from "./features/auth/components/UpdateMeForm";
 import AuthProtectedRoute from "./app/routes/AuthProtectedRoute";
 import ChangePasswordForm from "./features/auth/components/ChangePasswordForm";
+import ChatPage from "./features/chat/pages/ChatPage";
+import ChatIdPage from "./features/chat/pages/ChatIdPage";
 
 const App = () => {
   const { user, signinWithSocialMediaSuccess } = useAuthStore();
@@ -38,9 +40,9 @@ const App = () => {
         {/* auth protected */}
         <Route element={<AuthProtectedRoute />}>
           {/*  */}
-          {/* <Route path="chat" element={<ChatPage />}>
+          <Route path="chat" element={<ChatPage />}>
             <Route path=":id" element={<ChatIdPage />} />
-          </Route> */}
+          </Route>
 
           {/*  */}
           <Route path="me">

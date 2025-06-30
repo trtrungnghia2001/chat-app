@@ -13,6 +13,7 @@ import SESSION_CONFIG from "./configs/session.configs.js";
 import { connectIo } from "./socket/chat.js";
 import chatRouter from "./routers/chat.routes.js";
 import { verifyAccessToken } from "./middlewares/auth.middleware.js";
+import { httpServer } from "./configs/socket.config.js";
 
 connectMongoDB();
 connectIo();
@@ -31,6 +32,9 @@ app.use(passport.session());
 
 app.listen(ENV_CONFIG.PORT, function () {
   console.log(`Server is running on port:: `, ENV_CONFIG.PORT);
+});
+httpServer.listen(8000, function () {
+  console.log(`Socket is running on port:: `, 8000);
 });
 
 // router

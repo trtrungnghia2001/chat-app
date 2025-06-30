@@ -1,17 +1,19 @@
 import { messageModel, roomModel } from "#server/models/chat.model";
 import userModel from "#server/models/user.model";
+import { sendMessageWithSocket } from "#server/socket/chat";
 import {
   handleResponse,
   handleResponseList,
   resultAndPagination,
 } from "#server/utils/response.util";
+import { populate } from "dotenv";
 import express from "express";
 import { StatusCodes } from "http-status-codes";
 
 const chatRouter = express.Router();
 
 // message
-chatRouter.post(`/message/send-user`, async (req, res, next) => {
+chatRouter.post(`/message/send-message`, async (req, res, next) => {
   try {
     const body = req.body; // to,  content, media
     const user = req.user;
@@ -22,6 +24,13 @@ chatRouter.post(`/message/send-user`, async (req, res, next) => {
     // check room
     if (type === "room") {
       room = await roomModel.findById(body.to);
+
+      if (!room) {
+        return handleResponse(res, {
+          status: StatusCodes.NOT_FOUND,
+          message: "Room not found",
+        });
+      }
     }
 
     // check room, if null create new room
@@ -31,35 +40,35 @@ chatRouter.post(`/message/send-user`, async (req, res, next) => {
           $all: [user._id, body.to],
           $size: 2,
         },
+        isGroup: false,
       });
+
       if (!room) {
         room = await roomModel.create({
           roomName: "Private Chat",
           users: [user._id, body.to],
-          isRoom: false,
+          isGroup: false,
         });
       }
     }
 
-    // if room not found
-    if (!room) {
-      return handleResponse(res, {
-        status: StatusCodes.NOT_FOUND,
-        message: "Room not found",
-      });
-    }
-
-    const message = await messageModel.create({
+    const newMessage = await messageModel.create({
       ...body,
       sender: user._id,
       room: room._id,
     });
 
     // update room last message
-    if (message) {
-      room.lastMessage = message._id;
+    if (newMessage) {
+      room.lastMessage = newMessage._id;
       await room.save();
     }
+
+    const message = await messageModel
+      .findById(newMessage._id)
+      .populate([`sender`, `room`]);
+
+    sendMessageWithSocket(user._id, body.to, message);
 
     return handleResponse(res, {
       status: StatusCodes.CREATED,
@@ -70,14 +79,51 @@ chatRouter.post(`/message/send-user`, async (req, res, next) => {
     next(error);
   }
 });
-chatRouter.get(`/get-message/:roomId`, async (req, res, next) => {
+chatRouter.get(`/message/get-all/:id`, async (req, res, next) => {
   try {
-    const { roomId } = req.params;
+    const { id } = req.params;
+    const user = req.user;
+
+    const type = req.query._type; // room or user
+
+    let room;
+    // check room
+    if (type === "room") {
+      room = await roomModel.findById(id);
+    }
+
+    // check room, if null create new room
+    if (type === "user") {
+      room = await roomModel.findOne({
+        users: {
+          $all: [user._id, id],
+          $size: 2,
+        },
+        isGroup: false,
+      });
+    }
+
+    if (!room) {
+      return handleResponse(res, {
+        status: StatusCodes.NOT_FOUND,
+        message: "Room not found",
+      });
+    }
 
     const filter = {
-      room: roomId,
+      room: room._id,
     };
-    const messages = await resultAndPagination(req, messageModel, filter);
+
+    const options = {
+      populate: [`sender`],
+    };
+
+    const messages = await resultAndPagination(
+      req,
+      messageModel,
+      filter,
+      options
+    );
 
     return handleResponseList(res, {
       status: StatusCodes.OK,
@@ -92,12 +138,35 @@ chatRouter.get(`/get-message/:roomId`, async (req, res, next) => {
 // user
 chatRouter.get(`/user/get-all`, async (req, res, next) => {
   try {
-    const users = await resultAndPagination(req, userModel);
+    const users = await resultAndPagination(req, userModel, {
+      _id: {
+        $ne: req.user._id,
+      },
+    });
 
     return handleResponseList(res, {
       status: StatusCodes.OK,
       data: users.data,
       pagination: users.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+chatRouter.get(`/user/get-id/:id`, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findById(id);
+    if (!user) {
+      return handleResponse(res, {
+        status: StatusCodes.NOT_FOUND,
+        message: "User not found",
+      });
+    }
+    return handleResponse(res, {
+      status: StatusCodes.OK,
+      message: "User found successfully",
+      data: user,
     });
   } catch (error) {
     next(error);
@@ -120,7 +189,7 @@ chatRouter.get(`/room/get-all`, async (req, res, next) => {
 chatRouter.get(`/room/get-id/:id`, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const room = await roomModel.findByIdAndDelete(id, { new: true });
+    const room = await roomModel.findById(id);
     if (!room) {
       return handleResponse(res, {
         status: StatusCodes.NOT_FOUND,
@@ -157,7 +226,7 @@ chatRouter.put(`/room/update/:id`, async (req, res, next) => {
   try {
     const { id } = req.params;
     const body = req.body;
-    const room = await roomModel.findByIdAndDelete(id, { new: true });
+    const room = await roomModel.findById(id);
     if (!room) {
       return handleResponse(res, {
         status: StatusCodes.NOT_FOUND,
@@ -181,7 +250,7 @@ chatRouter.put(`/room/update/:id`, async (req, res, next) => {
 chatRouter.delete(`/room/delete/:id`, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const room = await roomModel.findByIdAndDelete(id, { new: true });
+    const room = await roomModel.findById(id);
     if (!room) {
       return handleResponse(res, {
         status: StatusCodes.NOT_FOUND,
