@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google OAuth & Login Form Test</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom font */
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .break-words {
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+      <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center rounded-md">
+        Kiểm tra Đăng nhập
+      </h1>
+
+      <!-- Traditional Login Form -->
+      <div class="mb-8 p-4 border border-gray-200 rounded-md bg-gray-50">
+        <h2
+          class="text-xl font-semibold text-gray-700 mb-4 text-center rounded-md"
+        >
+          Đăng nhập truyền thống
+        </h2>
+        <form id="login-form" class="space-y-4">
+          <div>
+            <label
+              for="email"
+              class="block text-sm font-medium text-gray-700 rounded-md"
+              >Email:</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="your@example.com"
+            />
+          </div>
+          <div>
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700 rounded-md"
+              >Mật khẩu:</label
+            >
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="••••••••"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 shadow-lg rounded-md"
+          >
+            Đăng nhập
+          </button>
+        </form>
+        <p
+          id="form-message"
+          class="text-center mt-4 text-sm hidden rounded-md"
+        ></p>
+      </div>
+
+      <div class="text-center mb-8">
+        <span class="text-gray-500">Hoặc</span>
+      </div>
+
+      <!-- Google Login Button -->
+      <a
+        href="http://localhost:5000/auth/passport/google"
+        class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 shadow-lg w-full rounded-md"
+      >
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            d="M19.207 9.53H18V9h-8v2h4.5c-.24 1.28-.977 2.37-2.11 3.12-.556.37-.996.6-.996.6l1.24 1.02c0 0 .723-.424 1.77-1.12.87-.58 1.636-1.39 2.22-2.38V16c-.22.38-.45.74-.69 1.08-.2.27-.4.53-.6.78-.17.2-.33.4-.5.59L15.9 19l.27-.46c.14-.24.27-.48.4-.73l.13-.24c.05-.09.09-.18.14-.27.09-.18.18-.36.08-.17.15-.34.22-.5.06-.15.11-.29.16-.43.05-.13.09-.26.13-.39.04-.13.07-.26.1-.38.03-.12.05-.23.07-.35h.01c.01-.06.02-.1.02-.15.01-.04.01-.08.01-.12.01-.06.01-.11.01-.17v-1.12l.1-.2c.04-.08.08-.16.11-.24.03-.08.06-.16.08-.24.02-.08.04-.15.05-.23.01-.07.02-.13.02-.2-.01-.09-.02-.17-.03-.26h.01c0-.01 0-.02-.01-.04-.01-.05-.02-.1-.03-.16-.01-.05-.02-.11-.04-.16-.01-.06-.03-.12-.04-.18-.02-.06-.04-.12-.06-.18-.02-.06-.04-.11-.06-.17-.02-.05-.04-.1-.06-.15-.02-.05-.04-.1-.06-.14-.02-.05-.03-.09-.05-.14-.01-.03-.02-.06-.03-.09-.01-.03-.02-.06-.03-.09s-.01-.05-.02-.08-.01-.05-.01-.07-.01-.03-.01-.05h.001c-.01-.01-.01-.02-.01-.02h.001v-.01h.001zM10 12v-2h8v2h-8z"
+            clip-rule="evenodd"
+            fill-rule="evenodd"
+          ></path>
+        </svg>
+        Đăng nhập với Google
+      </a>
+
+      <div
+        id="result-area"
+        class="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-md text-left hidden"
+      >
+        <h2 class="text-xl font-semibold text-gray-700 mb-2 rounded-md">
+          Kết quả đăng nhập:
+        </h2>
+        <p class="text-sm text-gray-800 break-words rounded-md">
+          <strong>Access Token:</strong>
+          <span
+            id="display-token"
+            class="block bg-gray-200 p-3 rounded-md mt-2 text-gray-900 overflow-auto whitespace-normal"
+          >
+            Token được lưu trữ trong **HttpOnly cookie** và không thể đọc trực
+            tiếp bằng JavaScript.
+          </span>
+        </p>
+        <p class="text-sm text-gray-600 mt-2">
+          Trình duyệt sẽ tự động gửi cookie này trong các yêu cầu tới cùng một
+          domain.
+        </p>
+
+        <h3 class="text-xl font-semibold text-gray-700 mt-6 mb-2 rounded-md">
+          Thông tin Người dùng (từ API):
+        </h3>
+        <div
+          id="user-info"
+          class="bg-gray-200 p-3 rounded-md text-gray-900 text-sm overflow-auto whitespace-pre-wrap"
+        >
+          Đang tải...
+        </div>
+      </div>
+
+      <div
+        id="error-area"
+        class="mt-8 p-4 bg-red-50 border border-red-200 rounded-md text-left hidden"
+      >
+        <h2 class="text-xl font-semibold text-red-700 mb-2 rounded-md">
+          Lỗi đăng nhập:
+        </h2>
+        <p
+          id="display-error"
+          class="text-sm text-red-800 break-words rounded-md"
+        >
+          Có lỗi xảy ra.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const resultArea = document.getElementById("result-area");
+        const userInfoDiv = document.getElementById("user-info");
+        const errorArea = document.getElementById("error-area");
+        const displayError = document.getElementById("display-error");
+        const formMessage = document.getElementById("form-message"); // New: Form message area
+
+        const loginForm = document.getElementById("login-form"); // New: Login form
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+
+        const backendBaseUrl = "http://localhost:5000"; // Đảm bảo khớp với cổng backend của bạn
+
+        // Function to display messages (for form login)
+        const showFormMessage = (message, isError = false) => {
+          formMessage.textContent = message;
+          formMessage.classList.remove(
+            "hidden",
+            "text-green-600",
+            "text-red-600"
+          );
+          if (isError) {
+            formMessage.classList.add("text-red-600");
+          } else {
+            formMessage.classList.add("text-green-600");
+          }
+        };
+
+        // Function to fetch user info from backend (common for both login methods)
+        const fetchUserInfo = async () => {
+          userInfoDiv.textContent = "Đang tải thông tin người dùng...";
+          try {
+            // Trình duyệt sẽ tự động gửi HttpOnly cookies
+            const response = await fetch(
+              `${backendBaseUrl}/passport/signin-success`,
+              {
+                method: "GET",
+                credentials: "include", // Cần thiết để gửi cookies cross-origin nếu frontend/backend khác cổng/domain
+              }
+            );
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(
+                errorData.message || "Failed to fetch user data."
+              );
+            }
+
+            const data = await response.json();
+            if (data && data.data) {
+              userInfoDiv.textContent = JSON.stringify(data.data, null, 2);
+            } else {
+              userInfoDiv.textContent = "Không tìm thấy thông tin người dùng.";
+            }
+          } catch (err) {
+            userInfoDiv.textContent = `Lỗi tải thông tin người dùng: ${err.message}`;
+            userInfoDiv.classList.add("text-red-500");
+            console.error("Error fetching user info:", err);
+          }
+        };
+
+        // --- Handle OAuth Callback (if redirected from Google/GitHub) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorInUrl = urlParams.get("error"); // Error from OAuth redirect
+
+        if (errorInUrl) {
+          displayError.textContent = decodeURIComponent(errorInUrl);
+          errorArea.classList.remove("hidden");
+          resultArea.classList.add("hidden"); // Hide success area if there's an OAuth error
+          history.replaceState({}, document.title, window.location.pathname); // Clean URL
+          return; // Stop further processing if OAuth failed
+        }
+
+        // If this is the callback page (and no error), initiate user info fetch
+        if (window.location.pathname.endsWith("/google/callback")) {
+          resultArea.classList.remove("hidden");
+          history.replaceState({}, document.title, window.location.pathname); // Clean URL
+          fetchUserInfo(); // Fetch user info using HttpOnly cookie
+        }
+
+        // --- Handle Traditional Login Form Submission ---
+        loginForm.addEventListener("submit", async (event) => {
+          event.preventDefault(); // Prevent default form submission
+
+          showFormMessage("Đang đăng nhập...", false); // Show loading message
+
+          const email = emailInput.value;
+          const password = passwordInput.value;
+
+          try {
+            const response = await fetch(
+              `${backendBaseUrl}/auth/authentication/signin`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+                credentials: "include", // Cần thiết để nhận và gửi cookies cross-origin
+              }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+              showFormMessage(data.message || "Đăng nhập thành công!", false);
+              resultArea.classList.remove("hidden"); // Show result area
+              // Sau khi đăng nhập thành công, trình duyệt sẽ tự động nhận cookie.
+              // Bây giờ gọi API signin-success để lấy thông tin user.
+              fetchUserInfo();
+            } else {
+              showFormMessage(data.message || "Đăng nhập thất bại!", true);
+              errorArea.classList.remove("hidden"); // Show error area
+              displayError.textContent = data.message || "Đăng nhập thất bại!";
+              resultArea.classList.add("hidden"); // Hide success area
+            }
+          } catch (error) {
+            console.error("Error during login:", error);
+            showFormMessage(
+              "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.",
+              true
+            );
+            errorArea.classList.remove("hidden");
+            displayError.textContent = "Đã xảy ra lỗi kết nối!";
+            resultArea.classList.add("hidden");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

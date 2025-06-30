@@ -1,0 +1,66 @@
+POST http://localhost:5000/auth/signup
+Content-Type: application/json
+
+{
+    "name":"John Smith",
+    "email":"tr.trungnghia20011@gmail.com",
+    "password":"password123",
+    "confirm_password":"password123"
+}
+
+###
+POST http://localhost:5000/auth/signin
+Content-Type: application/json
+
+{
+    "email":"tr.trungnghia2001@gmail.com",
+    "password":"123456"
+}
+
+###
+POST http://localhost:5000/auth/signout
+Content-Type: application/json
+
+###
+GET http://localhost:5000/auth/get-me
+Content-Type: application/json
+
+###
+PUT http://localhost:5000/auth/update-me
+Content-Type: application/json
+
+{
+    "phoneNumber": "0123456789",
+    "address": "Hai Phong, Viet Nam"
+}
+
+###
+PUT http://localhost:5000/auth/change-password
+Content-Type: application/json
+
+{
+    "password":"password123",
+    "confirm_password":"password123"
+}
+
+###
+POST http://localhost:5000/auth/refresh-token
+Content-Type: application/json
+
+###
+POST http://localhost:5000/auth/forgot-password
+Content-Type: application/json
+
+{
+    "email":"tr.trungnghia2001@gmail.com"
+}
+
+###
+POST http://localhost:5000/auth/reset-password
+Content-Type: application/json
+
+{
+    "token":"",
+    "password":"123456",
+    "confirm_password":"123456"
+}
