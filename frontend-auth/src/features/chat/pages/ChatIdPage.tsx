@@ -1,13 +1,14 @@
 import useSearchParamsValue from "@/shared/hooks/useSearchParamsValue";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { getMessagesIdApi, getUserIdApi } from "../apis/chatApi";
-import { IMAGE_NOTFOUND } from "@/shared/constants/image.constanr";
+import { getMessagesIdApi, getRoomIdApi, getUserIdApi } from "../apis/chatApi";
 import { useChatContext } from "../contexts/chat";
-import clsx from "clsx";
 import ChatInput from "../components/ChatInput";
 import { useEffect, useMemo, useRef } from "react";
 import MessageCard from "../components/MessageCard";
+import ChatHeader from "../components/ChatHeader";
+import type { IUser } from "@/features/auth/types/auth";
+import type { IRoom } from "../types";
 
 const ChatIdPage = () => {
   const { id } = useParams();
@@ -20,14 +21,12 @@ const ChatIdPage = () => {
       if (type === "user") {
         return await getUserIdApi(id!);
       }
-      return null;
+      return await getRoomIdApi(id!);
     },
     enabled: !!(type && id),
   });
-  const infoData = getInfoIdResult.data?.data;
 
-  const { onlineUsers, messages, setCurrentId } = useChatContext();
-  const isOnline = onlineUsers.includes(id!);
+  const { messages, setCurrentId } = useChatContext();
   useEffect(() => {
     setCurrentId(id!);
   }, [id]);
@@ -59,40 +58,14 @@ const ChatIdPage = () => {
   return (
     <div className="flex flex-col justify-center h-screen">
       {/* top */}
-      <div className="flex items-center justify-between border-b p-3">
-        {/* left */}
-        <div>
-          <div className="flex items-center gap-2">
-            <div className={`relative`}>
-              <div className="w-8 aspect-square overflow-hidden rounded-full">
-                <img
-                  src={infoData?.avatar || IMAGE_NOTFOUND.avatar_notfound}
-                  alt="avatar"
-                  loading="lazy"
-                />
-              </div>
-              {isOnline && (
-                <div className="absolute bottom-0 right-0 bg-white rounded-full overflow-hidden p-0.5">
-                  <div className="w-2 aspect-square bg-green-500 rounded-full overflow-hidden"></div>
-                </div>
-              )}
-            </div>
-            <div>
-              <h6 className="font-medium text-15">{infoData?.name}</h6>
-              <p
-                className={clsx([
-                  `text-10 font-medium `,
-                  isOnline ? "text-green-500" : "text-gray-500",
-                ])}
-              >
-                {isOnline ? "Online" : "Offline"}
-              </p>
-            </div>
-          </div>
-        </div>
-        {/* right */}
-        <div></div>
-      </div>
+      <ChatHeader
+        user={
+          type === "user" ? (getInfoIdResult.data?.data as IUser) : undefined
+        }
+        room={
+          type === "room" ? (getInfoIdResult.data?.data as IRoom) : undefined
+        }
+      />
       {/* main */}
       <div className="flex-1 p-3 overflow-y-auto">
         <ul className="space-y-3">

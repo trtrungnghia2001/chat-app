@@ -10,13 +10,12 @@ import { handleError } from "./utils/response.util.js";
 import passportRouter from "./routers/passport.routes.js";
 import passportConfig from "./configs/passport.config.js";
 import SESSION_CONFIG from "./configs/session.configs.js";
-import { connectIo } from "./socket/chat.js";
 import chatRouter from "./routers/chat.routes.js";
 import { verifyAccessToken } from "./middlewares/auth.middleware.js";
-import { httpServer } from "./configs/socket.config.js";
+import { httpServer, io } from "./configs/socket.config.js";
+import { connectSocketIo } from "./socket/chat.js";
 
-connectMongoDB();
-connectIo();
+await connectMongoDB();
 
 export const app = express();
 app.use(CORS_CONFIG);
@@ -33,9 +32,6 @@ app.use(passport.session());
 app.listen(ENV_CONFIG.PORT, function () {
   console.log(`Server is running on port:: `, ENV_CONFIG.PORT);
 });
-httpServer.listen(8000, function () {
-  console.log(`Socket is running on port:: `, 8000);
-});
 
 // router
 app.use("/api/v1/auth", authRouter);
@@ -43,3 +39,9 @@ app.use("/api/v1/auth/passport", passportRouter);
 app.use("/api/v1/chat", verifyAccessToken, chatRouter);
 
 app.use(handleError);
+
+// socket
+httpServer.listen(8000, function () {
+  console.log(`Socket is running on port:: `, 8000);
+});
+await connectSocketIo();

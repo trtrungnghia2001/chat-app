@@ -9,7 +9,7 @@ const ChatInput = () => {
   const type = searchParams.get("type");
   const [content, setContent] = useState("");
 
-  const { currentId } = useChatContext();
+  const { currentId, setMessages } = useChatContext();
 
   const sendResult = useMutation({
     mutationFn: async () =>
@@ -21,8 +21,9 @@ const ChatInput = () => {
           media: "",
         },
       }),
-    onSuccess() {
+    onSuccess(data) {
       setContent("");
+      setMessages((prev) => [...prev, data.data]);
     },
     onError(error) {
       console.error(error);

@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { chatSocket } from "@/shared/configs/socket.config";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { IMessage } from "../types";
+import type { IChat, IMessage } from "../types";
 
 interface IChatContext {
   onlineUsers: string[];
@@ -9,7 +9,7 @@ interface IChatContext {
   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
   currentId: string | null;
   setCurrentId: React.Dispatch<React.SetStateAction<string | null>>;
-  setChats: React.Dispatch<React.SetStateAction<string[]>>;
+  setChats: React.Dispatch<React.SetStateAction<IChat[]>>;
 }
 
 export const ChatContext = createContext<IChatContext>({
@@ -27,32 +27,43 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [messages, setMessages] = useState<IMessage[]>([]);
-  const [chats, setChats] = useState<string[]>([]);
+  const [chats, setChats] = useState<IChat[]>([]);
 
   useEffect(() => {
     // if user is login, connect to socket
-    if (!user) return;
+    if (!user) {
+      chatSocket.disconnect();
+      return;
+    }
     chatSocket.auth = { authId: user._id };
     chatSocket.connect();
 
     // listen to events
     chatSocket.on("onlineUsers", handleOnlineUsers);
     chatSocket.on("send-message", handleSendMessage);
+    chatSocket.on("join-room", handleJoinRoom);
 
     return () => {
       chatSocket.off("onlineUsers", handleOnlineUsers);
       chatSocket.off("send-message", handleSendMessage);
-      chatSocket.disconnect();
+      chatSocket.off("join-room", handleJoinRoom);
+      // chatSocket.disconnect();
     };
-  }, [user]);
+  }, [user, currentId]);
 
   const handleOnlineUsers = (users: string[]) => {
     setOnlineUsers(users);
   };
   const handleSendMessage = (data: IMessage) => {
-    if (currentId !== user?._id) {
+    if (
+      currentId === data.sender._id ||
+      (currentId === data.room._id && user?._id !== data.sender._id)
+    ) {
       setMessages((prev) => [...prev, data]);
     }
+  };
+  const handleJoinRoom = (data: IChat) => {
+    chatSocket.emit("join-room", data);
   };
 
   useEffect(() => {
@@ -63,8 +74,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     if (chats.length === 0) return;
     chatSocket.emit("join-rooms", chats);
   }, [chats]);
-
-  console.log({ onlineUsers });
 
   return (
     <ChatContext.Provider

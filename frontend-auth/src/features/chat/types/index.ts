@@ -30,3 +30,12 @@ export interface IMessageSend {
   };
   type: string;
 }
+
+export interface IChat {
+  id: string;
+  type: string; // user or room
+}
+
+export interface IChatUser extends IUser {
+  lastMessage: IMessage;
+}

@@ -9,10 +9,12 @@ const messageSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     },
-    isRead: {
-      type: Boolean,
-      default: false,
-    },
+    isRead: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "room",
+      },
+    ],
     room: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "room",

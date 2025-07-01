@@ -1,0 +1,95 @@
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/components/ui/dialog";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shared/components/ui/form";
+import { Input } from "@/shared/components/ui/input";
+import { Button } from "@/shared/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { useRoomStore } from "../stores/room";
+
+const FormSchema = z.object({
+  roomId: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+});
+
+const RoomJoinForm = ({ children }: { children: React.ReactNode }) => {
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      roomId: "",
+    },
+  });
+  function onSubmit(data: z.infer<typeof FormSchema>) {
+    joinRoomResult.mutate(data.roomId);
+  }
+
+  const { joinRoom } = useRoomStore();
+  const joinRoomResult = useMutation({
+    mutationFn: async (roomId: string) => await joinRoom(roomId),
+    onSuccess(data) {
+      toast.success(data.message);
+      form.reset();
+      setOpen(false);
+    },
+    onError(error) {
+      toast.error(error.message);
+    },
+  });
+
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={() => {
+        setOpen(!open);
+      }}
+    >
+      <DialogTrigger>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Join Room?</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="roomId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Room Code</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button disabled={joinRoomResult.isPending} type="submit">
+              Submit
+            </Button>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default RoomJoinForm;
